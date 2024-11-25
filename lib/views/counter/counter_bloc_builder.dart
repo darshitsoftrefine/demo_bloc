@@ -5,25 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../controller/counter_bloc/counter_events.dart';
 
-class Counter_Bloc_Builder extends StatefulWidget {
-  const Counter_Bloc_Builder({super.key});
+class CounterBlocBuilder extends StatelessWidget {
+  const CounterBlocBuilder({super.key});
 
-  @override
-  State<Counter_Bloc_Builder> createState() => _Counter_Bloc_BuilderState();
-}
-
-class _Counter_Bloc_BuilderState extends State<Counter_Bloc_Builder> {
-
-  int counter = 0;
-  bool consumer = false;
-  bool builder = false;
-  bool selector = false;
+  final int counter = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Counter Bloc Builder Demo"),
+        title: const Text("Counter Bloc Builder Demo"),
       ),
       body: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -34,18 +25,22 @@ class _Counter_Bloc_BuilderState extends State<Counter_Bloc_Builder> {
                   return Column(
                     children: [
                       Center(
-                        child: Text("${state.counter.toString()}", style: TextStyle(fontSize: 15),),
+                        child: Text(state.counter.toString(), style: const TextStyle(fontSize: 15),),
                       ),
-                      SizedBox(height: 50,),
+                      const SizedBox(height: 50,),
                       Row(
                         children: [
-                          FloatingActionButton(onPressed: (){
+                          FloatingActionButton(
+                            heroTag: null,
+                            onPressed: (){
                             context.read<CounterBloc>().add(CounterIncrementEvent());
-                          }, child: Icon(Icons.add),),
-                          SizedBox(width: 20,),
-                          FloatingActionButton(onPressed: (){
+                          }, child: const Icon(Icons.add),),
+                          const SizedBox(width: 20,),
+                          FloatingActionButton(
+                            heroTag: null,
+                            onPressed: (){
                             context.read<CounterBloc>().add(CounterDecrementEvent());
-                          }, child: Icon(Icons.remove),)
+                          }, child: const Icon(Icons.remove),)
                         ],
                       ),
                     ],

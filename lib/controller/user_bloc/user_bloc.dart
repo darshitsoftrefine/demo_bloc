@@ -14,9 +14,9 @@ class UserBloc extends Bloc<UserEvents, UserStates> {
       } else {
         try {
         final users = await userRepository.getUsers();
-        emit(UserSuccessState(users));
+        emit(UserSuccessState(users: users));
       } catch(e){
-        emit(UserErrorState(e.toString()));
+        emit(UserErrorState(error: e.toString()));
       }
       }
     });

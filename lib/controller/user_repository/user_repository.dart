@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
 import '../../model/user_model.dart';
@@ -12,10 +13,10 @@ class UserRepository {
 
     if(response.statusCode == 200){
       final List result = jsonDecode(response.body)['data'];
-      print(result);
+      debugPrint(result.toString());
       return result.map((e) => UserModel.fromJson(e)).toList();
     } else {
-      print("Error in displaying data");
+      debugPrint("Error in displaying data");
       throw Exception("Error");
     }
   }

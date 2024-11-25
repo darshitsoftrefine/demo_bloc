@@ -5,25 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../controller/counter_bloc/counter_events.dart';
 
-class Counter_Bloc_Listener extends StatefulWidget {
-  const Counter_Bloc_Listener({super.key});
+class CounterBlocListener extends StatelessWidget {
+  const CounterBlocListener({super.key});
 
-  @override
-  State<Counter_Bloc_Listener> createState() => _Counter_Bloc_ListenerState();
-}
-
-class _Counter_Bloc_ListenerState extends State<Counter_Bloc_Listener> {
-
-  int counter = 0;
-  bool consumer = false;
-  bool builder = false;
-  bool selector = false;
+  final int counter = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Counter Bloc Listener Demo"),
+        title: const Text("Counter Bloc Listener Demo"),
       ),
       body: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -41,16 +32,20 @@ class _Counter_Bloc_ListenerState extends State<Counter_Bloc_Listener> {
                 },
                 child: Column(
                   children: [
-                    Text("Bloc Listener"),
+                    const Text("Bloc Listener"),
                     Row(
                       children: [
-                        FloatingActionButton(onPressed: (){
+                        FloatingActionButton(
+                          heroTag: null,
+                          onPressed: (){
                           context.read<CounterBloc>().add(CounterIncrementEvent());
-                        }, child: Icon(Icons.add),),
-                        SizedBox(width: 20,),
-                        FloatingActionButton(onPressed: (){
+                        }, child: const Icon(Icons.add),),
+                        const SizedBox(width: 20,),
+                        FloatingActionButton(
+                          heroTag: null,
+                          onPressed: (){
                           context.read<CounterBloc>().add(CounterDecrementEvent());
-                        }, child: Icon(Icons.remove),)
+                        }, child: const Icon(Icons.remove),)
                       ],
                     ),
                   ],

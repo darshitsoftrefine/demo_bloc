@@ -15,6 +15,28 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    _scrollController.addListener(_loadMore);
+    UserRepository().getUsers();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _loadMore() {
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      UserRepository().getUsers;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(create: (context) => UserBloc(UserRepository())..add(UserSubmittingEvent()),
@@ -25,7 +47,6 @@ class _HomePageState extends State<HomePage> {
               ),
               body: BlocSelector<UserBloc, UserStates, bool>(
                 selector: (state){
-                  print("State print $state");
                    return state is UserErrorState ? true : false;
                 },
                 builder: (context, state){
@@ -37,28 +58,34 @@ class _HomePageState extends State<HomePage> {
                         else if(state is UserSuccessState){
                           List<UserModel> users = state.users;
                           return state.users.isEmpty ? Container(color: Colors.pink,) : ListView.builder(
+                            controller: _scrollController,
                             itemCount: users.length,
                             itemBuilder: (BuildContext context, int index) {
-                              return Card(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        CircleAvatar(backgroundImage: NetworkImage("${users[index].avatar}"), ),
-                                        const SizedBox(width: 20,),
-                                        Text("${users[index].firstName} ${users[index].lastName}"),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10,),
-                                    Text("${users[index].email}"),
-                                  ],
+                              return SizedBox(
+                                height: 200,
+                                child: Card(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          CircleAvatar(backgroundImage: NetworkImage("${users[index].avatar}"), ),
+                                          const SizedBox(width: 20,),
+                                          Text("${users[index].firstName} ${users[index].lastName}"),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10,),
+                                      Text("${users[index].email}"),
+                                      const SizedBox(height: 20,),
+                                      Text("${users[index].id}"),
+                                    ],
+                                  ),
                                 ),
                               );
                             },
                           );
                         } else if(state is UserErrorState){
-                          return Text("${state.error}");
+                          return Text(state.error);
                         }
                         return const SizedBox();
                   });
