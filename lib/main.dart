@@ -11,7 +11,6 @@ void main() {
   runApp(MultiBlocProvider(
     providers: [
       BlocProvider(create: (context) => UserBloc(UserRepository())),
-      BlocProvider(create: (context) => CounterBloc()),
       ],
       child: const MyApp()));
 }
