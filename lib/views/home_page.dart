@@ -17,11 +17,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
 
   final _scrollController = ScrollController();
+  List<UserModel> users = [];
 
   @override
   void initState() {
     _scrollController.addListener(_loadMore);
-    UserRepository().getUsers();
+    fetchData(context);
     super.initState();
   }
 
@@ -33,7 +34,16 @@ class _HomePageState extends State<HomePage> {
 
   void _loadMore() {
     if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-      UserRepository().getUsers;
+      setState(() {
+        fetchData(context);
+      });
+    }
+  }
+
+  void fetchData(BuildContext context) {
+    if (mounted) {
+      final userListBloc = context.read<UserBloc>();
+      userListBloc.add(UserSubmittedEvent());
     }
   }
 
@@ -45,52 +55,46 @@ class _HomePageState extends State<HomePage> {
               appBar: AppBar(
                 title: const Text("Bloc Demo"),
               ),
-              body: BlocSelector<UserBloc, UserStates, bool>(
-                selector: (state){
-                   return state is UserErrorState ? true : false;
-                },
-                builder: (context, state){
-                  return BlocBuilder<UserBloc, UserStates>(
-                      builder: (context, state){
-                        if(state is UserLoadingState || state is UserInitialState){
-                          return const Center(child: CircularProgressIndicator(),);
-                        }
-                        else if(state is UserSuccessState){
-                          List<UserModel> users = state.users;
-                          return state.users.isEmpty ? Container(color: Colors.pink,) : ListView.builder(
-                            controller: _scrollController,
-                            itemCount: users.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return SizedBox(
-                                height: 200,
-                                child: Card(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          CircleAvatar(backgroundImage: NetworkImage("${users[index].avatar}"), ),
-                                          const SizedBox(width: 20,),
-                                          Text("${users[index].firstName} ${users[index].lastName}"),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 10,),
-                                      Text("${users[index].email}"),
-                                      const SizedBox(height: 20,),
-                                      Text("${users[index].id}"),
-                                    ],
+              body: BlocBuilder<UserBloc, UserStates>(
+                  builder: (context, state){
+                    if(state is UserLoadingState || state is UserInitialState){
+                      return const Center(child: CircularProgressIndicator(),);
+                    }
+                    else if(state is UserSuccessState){
+                      users = state.users;
+                      return ListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              controller: _scrollController,
+                              itemCount: users.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return SizedBox(
+                                  height: 200,
+                                  child: Card(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            CircleAvatar(child: Image.network("${users[index].avatar}"),),
+                                            const SizedBox(width: 20,),
+                                            Text("${users[index].firstName} ${users[index].lastName}"),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 10,),
+                                        Text("${users[index].email}"),
+                                        const SizedBox(height: 20,),
+                                        Text("${users[index].id}"),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          );
-                        } else if(state is UserErrorState){
-                          return Text(state.error);
-                        }
-                        return const SizedBox();
-                  });
-                }
-              ),
+                                );
+                              },
+                            );
+                    } else if(state is UserErrorState){
+                      return Center(child: Text(state.error));
+                    }
+                    return const Center(child: CircularProgressIndicator(),);
+              }),
               ),
           ),
     );

@@ -1,20 +1,24 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 
 import '../../model/user_model.dart';
 
 class UserRepository {
 
-  String userUrl = "https://reqres.in/api/users?page=1";
+  final String userUrl = "https://reqres.in/api/users?page=1";
 
   Future<List<UserModel>> getUsers() async {
-    var response = await get(Uri.parse(userUrl));
+    var response = await http.get(Uri.parse(userUrl),
+      headers:  <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
 
     if(response.statusCode == 200){
-      final List result = jsonDecode(response.body)['data'];
+      List result = jsonDecode(response.body)['data'];
       debugPrint(result.toString());
-      return result.map((e) => UserModel.fromJson(e)).toList();
+      return result.map((userData) => UserModel.fromJson(userData)).toList();
     } else {
       debugPrint("Error in displaying data");
       throw Exception("Error");
