@@ -1,11 +1,9 @@
-import 'package:demo_bloc_arch/controller/counter_bloc/counter_bloc.dart';
-import 'package:demo_bloc_arch/views/counter/counter_page.dart';
 import 'package:demo_bloc_arch/views/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'controller/user_bloc/user_bloc.dart';
-import 'controller/user_repository/user_repository.dart';
+import 'bloc/user_bloc/user_bloc.dart';
+import 'model/user_repository/user_repository.dart';
 
 void main() {
   runApp(MultiBlocProvider(

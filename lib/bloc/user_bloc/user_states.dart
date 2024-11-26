@@ -1,4 +1,4 @@
-import '../../model/user_model.dart';
+import '../../model/user_model/user_model.dart';
 
 abstract class UserStates {}
 
@@ -7,7 +7,7 @@ class UserInitialState extends UserStates {}
 class UserLoadingState extends UserStates {}
 
 class UserSuccessState extends UserStates {
-  final List<UserModel> users;
+  final List<Data> users;
   UserSuccessState({required this.users});
 }
 
