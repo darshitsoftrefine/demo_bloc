@@ -5,13 +5,13 @@ import '../user_model/user_model.dart';
 
 class UserRepository {
 
-  Future getUsers() async {
-    var response = await http.get(Uri.parse("https://reqres.in/api/users?page=1"),
+  Future getUsers(int pageNumber) async {
+    final String userUrl = "https://reqres.in/api/users?page=$pageNumber";
+    var response = await http.get(Uri.parse(userUrl),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
     );
-    //print("Response body ${response.body}");
     if (response.statusCode == 200) {
       try {
         final List<Data> data = [];

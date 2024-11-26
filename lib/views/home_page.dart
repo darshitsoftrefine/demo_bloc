@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   List<Data> users = [];
   List<Data> totalUsers = [];
   bool isLoadMore = false;
-  int page = 1;
+  int page = 0;
 
   @override
   void initState() {
@@ -48,11 +49,7 @@ class _HomePageState extends State<HomePage> {
   void fetchData(BuildContext context) {
     if (isLoadMore) {
       final userListBloc = context.read<UserBloc>();
-      userListBloc.add(UserSubmittedEvent());
-      if(page == 4) {
-          isLoadMore = false;
-         _scrollController.removeListener(_loadMore);
-      }
+      userListBloc.add(UserSubmittedEvent(pageNumber: page));
       // setState(() {
       //   totalUsers.addAll(moreUsers);
       // });
@@ -61,7 +58,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-      return BlocProvider(create: (context) => UserBloc(UserRepository())..add(UserSubmittedEvent()),
+      return BlocProvider(create: (context) => UserBloc(UserRepository())..add(UserSubmittedEvent(pageNumber: page)),
         child: Scaffold(
           appBar: AppBar(
             title: const Text("Bloc Demo"),
@@ -80,8 +77,9 @@ class _HomePageState extends State<HomePage> {
                   return ListView.builder(
                     physics: const BouncingScrollPhysics(),
                     controller: _scrollController,
-                    itemCount: totalUsers.length + (isLoadMore ? 1 : 0),
+                    itemCount: totalUsers.length,
                     itemBuilder: (BuildContext context, int index) {
+                      print(totalUsers[index].firstName);
                       if(index < totalUsers.length){
                         return Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -92,7 +90,9 @@ class _HomePageState extends State<HomePage> {
                                 children: [
                                   Row(
                                     children: [
-                                      CircleAvatar(backgroundImage: NetworkImage(totalUsers[index].avatar),),
+                                      CircleAvatar(child: CachedNetworkImage(imageUrl:  totalUsers[index].avatar, progressIndicatorBuilder: (context, url, downloadProgress) =>
+                                          CircularProgressIndicator(value: downloadProgress.progress),
+                                        errorWidget: (context, url, error) => Icon(Icons.error),),),
                                       const SizedBox(width: 20,),
                                       Text("${totalUsers[index].firstName} ${totalUsers[index].lastName}"),
                                     ],
@@ -106,10 +106,8 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         );} else {
-                        return isLoadMore ? const Padding(padding: EdgeInsets.all(8.0),
+                        return const Padding(padding: EdgeInsets.all(8.0),
                           child: Center(child: CircularProgressIndicator(),),
-                        ) : const Padding(padding: EdgeInsets.all(8.0),
-                          child: Center(child: Text("No more data to load"),),
                         );
                       }
                     },
@@ -117,8 +115,10 @@ class _HomePageState extends State<HomePage> {
                 } else if(state is UserErrorState){
                   return Center(child: Text(state.error));
                 }
+                totalUsers.clear();
                 return const Center(child: CircularProgressIndicator(),);
-              }),
+              }
+              ),
         ),
       );
   }
