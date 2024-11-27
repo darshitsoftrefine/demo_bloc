@@ -8,7 +8,7 @@ import 'model/user_repository/user_repository.dart';
 void main() {
   runApp(MultiBlocProvider(
     providers: [
-      BlocProvider(create: (context) => UserBloc(UserRepository())),
+      BlocProvider(create: (context) => UserBloc(userRepository: UserRepository())),
       ],
       child: const MyApp()));
 }

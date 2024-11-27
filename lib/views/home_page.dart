@@ -17,16 +17,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-  final _scrollController = ScrollController();
+  ScrollController _scrollController = ScrollController();
   List<Data> users = [];
-  List<Data> totalUsers = [];
   bool isLoadMore = false;
-  int page = 0;
+  int page = 1;
 
   @override
   void initState() {
     _scrollController.addListener(_loadMore);
-    fetchData(context);
     super.initState();
   }
 
@@ -38,88 +36,89 @@ class _HomePageState extends State<HomePage> {
 
   void _loadMore() {
     if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-      setState(() {
-        isLoadMore = true;
-        page++;
-        fetchData(context);
-      });
+      fetchData();
     }
   }
 
-  void fetchData(BuildContext context) {
-    if (isLoadMore) {
+  Future<void> fetchData() async{
+    if (isLoadMore) return;
+    setState(() {
+      isLoadMore = true;
+    });
+    setState(() {
+      page++;
+      isLoadMore = false;
       final userListBloc = context.read<UserBloc>();
       userListBloc.add(UserSubmittedEvent(pageNumber: page));
-      // setState(() {
-      //   totalUsers.addAll(moreUsers);
-      // });
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-      return BlocProvider(create: (context) => UserBloc(UserRepository())..add(UserSubmittedEvent(pageNumber: page)),
-        child: Scaffold(
+      return Scaffold(
           appBar: AppBar(
             title: const Text("Bloc Demo"),
           ),
-          body: BlocBuilder<UserBloc, UserStates>(
-              builder: (context, state){
-                if(state is UserLoadingState || state is UserInitialState){
-                  return const Center(child: CircularProgressIndicator(),);
-                }
-                else if(state is UserSuccessState){
-                  users = state.users;
+          body: BlocProvider(create: (context) => UserBloc(userRepository: UserRepository())..add(UserSubmittedEvent(pageNumber: page)),
+            child: BlocBuilder<UserBloc, UserStates>(
+                builder: (context, state){
+                  print("State $state");
+                  if(state is UserLoadingState || state is UserInitialState){
+                    return const Center(child: CircularProgressIndicator(),);
+                  }
+                  else if(state is UserSuccessState){
+                    //users.clear();
+                    users = users + state.users;
 
-                    totalUsers.addAll(state.users);
-
-                  print("Page number $page");
-                  return ListView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    controller: _scrollController,
-                    itemCount: totalUsers.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      print(totalUsers[index].firstName);
-                      if(index < totalUsers.length){
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            child: Card(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      CircleAvatar(child: CachedNetworkImage(imageUrl:  totalUsers[index].avatar, progressIndicatorBuilder: (context, url, downloadProgress) =>
-                                          CircularProgressIndicator(value: downloadProgress.progress),
-                                        errorWidget: (context, url, error) => Icon(Icons.error),),),
-                                      const SizedBox(width: 20,),
-                                      Text("${totalUsers[index].firstName} ${totalUsers[index].lastName}"),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10,),
-                                  Text(totalUsers[index].email),
-                                  const SizedBox(height: 20,),
-                                  Text("${totalUsers[index].id}"),
-                                ],
+                    print("Users ${state.users[0].firstName}");
+                    print("Page number $page");
+                    return ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      controller: _scrollController,
+                      itemCount: users.length,
+                      itemBuilder: (context, index) {
+                        if(index < users.length){
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              child: Card(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        CircleAvatar(child: CachedNetworkImage(imageUrl:  users[index].avatar, progressIndicatorBuilder: (context, url, downloadProgress) =>
+                                            CircularProgressIndicator(value: downloadProgress.progress),
+                                          errorWidget: (context, url, error) => const Icon(Icons.error),),),
+                                        const SizedBox(width: 20,),
+                                        Text("${users[index].firstName} ${users[index].lastName}"),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10,),
+                                    Text(users[index].email),
+                                    const SizedBox(height: 20,),
+                                    Text("${users[index].id}"),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );} else {
-                        return const Padding(padding: EdgeInsets.all(8.0),
-                          child: Center(child: CircularProgressIndicator(),),
-                        );
-                      }
-                    },
-                  );
-                } else if(state is UserErrorState){
-                  return Center(child: Text(state.error));
+                          );} else {
+                          return isLoadMore ? const Padding(padding: EdgeInsets.all(8.0),
+                            child: Center(child: CircularProgressIndicator(),),
+                          ) : const Text("No more data");
+                        }
+                      },
+                    );
+                  } else if(state is UserErrorState){
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(child: Text(state.error)),
+                    );
+                  }
+                  return const Center(child: CircularProgressIndicator(),);
                 }
-                totalUsers.clear();
-                return const Center(child: CircularProgressIndicator(),);
-              }
-              ),
-        ),
+                    ),
+          ),
       );
   }
 }

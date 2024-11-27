@@ -7,7 +7,7 @@ class UserInitialState extends UserStates {}
 class UserLoadingState extends UserStates {}
 
 class UserSuccessState extends UserStates {
-  final List<Data> users;
+  List<Data> users;
   UserSuccessState({required this.users});
 }
 
