@@ -6,7 +6,7 @@ import '../bloc/user_bloc/user_bloc.dart';
 import '../bloc/user_bloc/user_events.dart';
 import '../bloc/user_bloc/user_states.dart';
 import '../model/user_model/user_model.dart';
-import '../model/user_repository/user_repository.dart';
+import '../repository/user_repository/user_repository.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -48,9 +48,14 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       page++;
       isLoadMore = false;
-      final userListBloc = context.read<UserBloc>();
-      userListBloc.add(UserSubmittedEvent(pageNumber: page));
+      fetchMoreUsers();
     });
+  }
+
+  void fetchMoreUsers() {
+    final userListBloc = context.read<UserBloc>();
+    userListBloc.userRepository.getUsers(page);
+    userListBloc.add(UserSubmittedEvent(pageNumber: page));
   }
 
   @override
@@ -62,21 +67,18 @@ class _HomePageState extends State<HomePage> {
           body: BlocProvider(create: (context) => UserBloc(userRepository: UserRepository())..add(UserSubmittedEvent(pageNumber: page)),
             child: BlocBuilder<UserBloc, UserStates>(
                 builder: (context, state){
-                  print("State $state");
-                  if(state is UserLoadingState || state is UserInitialState){
-                    return const Center(child: CircularProgressIndicator(),);
-                  }
-                  else if(state is UserSuccessState){
+                  if(state is UserSuccessState){
                     //users.clear();
-                    users = users + state.users;
+                      users.addAll(state.users);
 
-                    print("Users ${state.users[0].firstName}");
+                    //print("Users ${state.users[0].firstName}");
                     print("Page number $page");
                     return ListView.builder(
                       physics: const BouncingScrollPhysics(),
                       controller: _scrollController,
-                      itemCount: users.length,
+                      itemCount: users.length + (isLoadMore ? 1 : 0),
                       itemBuilder: (context, index) {
+                        var userData = users[index];
                         if(index < users.length){
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -87,25 +89,25 @@ class _HomePageState extends State<HomePage> {
                                   children: [
                                     Row(
                                       children: [
-                                        CircleAvatar(child: CachedNetworkImage(imageUrl:  users[index].avatar, progressIndicatorBuilder: (context, url, downloadProgress) =>
+                                        CircleAvatar(child: CachedNetworkImage(imageUrl:  userData.avatar, progressIndicatorBuilder: (context, url, downloadProgress) =>
                                             CircularProgressIndicator(value: downloadProgress.progress),
                                           errorWidget: (context, url, error) => const Icon(Icons.error),),),
                                         const SizedBox(width: 20,),
-                                        Text("${users[index].firstName} ${users[index].lastName}"),
+                                        Text("${userData.firstName} ${users[index].lastName}"),
                                       ],
                                     ),
                                     const SizedBox(height: 10,),
-                                    Text(users[index].email),
+                                    Text(userData.email),
                                     const SizedBox(height: 20,),
-                                    Text("${users[index].id}"),
+                                    Text("${userData.id}"),
                                   ],
                                 ),
                               ),
                             ),
                           );} else {
-                          return isLoadMore ? const Padding(padding: EdgeInsets.all(8.0),
+                          return  const Padding(padding: EdgeInsets.all(8.0),
                             child: Center(child: CircularProgressIndicator(),),
-                          ) : const Text("No more data");
+                          );
                         }
                       },
                     );
@@ -114,10 +116,10 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.all(8.0),
                       child: Center(child: Text(state.error)),
                     );
-                  }
+                  } else {
                   return const Center(child: CircularProgressIndicator(),);
-                }
-                    ),
+                }}
+            ),
           ),
       );
   }

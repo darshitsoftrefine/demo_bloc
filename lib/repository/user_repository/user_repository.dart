@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-import '../user_model/user_model.dart';
+import '../../model/user_model/user_model.dart';
 
 class UserRepository {
 
   Future getUsers(int pageNumber) async {
     final String userUrl = "https://reqres.in/api/users?page=$pageNumber";
+
     var response = await http.get(Uri.parse(userUrl),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
