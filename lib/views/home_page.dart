@@ -19,7 +19,6 @@ class _HomePageState extends State<HomePage> {
   ScrollController _scrollController = ScrollController();
   List<Data> users = [];
   bool isLoadMore = false;
-  bool hasMore = true;
   int page = 0;
 
   @override
@@ -55,6 +54,7 @@ class _HomePageState extends State<HomePage> {
 
   void fetchMoreUsers() {
     final userListBloc = context.read<UserBloc>();
+    userListBloc.add(UserSubmittingEvent());
     userListBloc.add(UserSubmittedEvent(pageNumber: page));
   }
 
@@ -67,13 +67,7 @@ class _HomePageState extends State<HomePage> {
           body: BlocListener<UserBloc, UserStates>(
             listener: (context, state) {
               if(state is UserSuccessState) {
-                for (var user in state.users) {
-                  if (!users.contains(user)) {
-                    users.add(user);
-                  }
-                }
-              } else if(state is UserErrorState) {
-                hasMore = false;
+                users.addAll(state.users);
               }
             },
               child : BlocBuilder<UserBloc, UserStates>(
@@ -81,11 +75,10 @@ class _HomePageState extends State<HomePage> {
                   return Stack(
                     children: [
                       ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        controller: _scrollController,
-                        itemCount: users.length + 1 ,
-                        itemBuilder: (context, index) {
-                          if(index < users.length) {
+                          physics: const BouncingScrollPhysics(),
+                          controller: _scrollController,
+                          itemCount: users.length,
+                          itemBuilder: (context, index) {
                             var userData = users[index];
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
@@ -112,20 +105,19 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             );
-                          } else {
-                            return hasMore ? const Padding(padding: EdgeInsets.all(8.0),
-                              child: Center(child: CircularProgressIndicator()),
-                            ) : const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Center(child: Text('No more data to load'),),
-                            );
-                          }
                           }
                       ),
+                      showLoadingIndicator(state),
                     ],
                   );
                 })
           ),
       );
   }
+
+  Widget showLoadingIndicator(UserStates state) {
+    return (state is UserLoadingState) ? const Center(child:  CircularProgressIndicator()) : users.isEmpty ? Center(child: Text('No internet available'),)
+    : const SizedBox();
+  }
+
 }
