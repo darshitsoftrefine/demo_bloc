@@ -19,12 +19,13 @@ class _HomePageState extends State<HomePage> {
   ScrollController _scrollController = ScrollController();
   List<Data> users = [];
   bool isLoadMore = false;
-  int page = 0;
+  int page = 1;
+  String error = "";
 
   @override
   void initState() {
     _scrollController.addListener(_loadMore);
-    fetchData();
+    fetchMoreUsers();
     super.initState();
   }
 
@@ -36,25 +37,13 @@ class _HomePageState extends State<HomePage> {
 
   void _loadMore() {
     if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-      fetchData();
-    }
-  }
-
-  Future<void> fetchData() async{
-    if (isLoadMore) return;
-    setState(() {
-      isLoadMore = true;
-    });
-    setState(() {
       page++;
-      isLoadMore = false;
       fetchMoreUsers();
-    });
+    }
   }
 
   void fetchMoreUsers() {
     final userListBloc = context.read<UserBloc>();
-    userListBloc.add(UserSubmittingEvent());
     userListBloc.add(UserSubmittedEvent(pageNumber: page));
   }
 
@@ -67,12 +56,17 @@ class _HomePageState extends State<HomePage> {
           body: BlocListener<UserBloc, UserStates>(
             listener: (context, state) {
               if(state is UserSuccessState) {
+                isLoadMore = false;
                 users.addAll(state.users);
+              } else if(state is UserErrorState){
+                error = state.error;
+              } else if(state is UserLoadingState || state is UserInitialState){
+                isLoadMore = true;
               }
             },
               child : BlocBuilder<UserBloc, UserStates>(
               builder: (context, state){
-                  return Stack(
+                  return error == "" ? Stack(
                     children: [
                       ListView.builder(
                           physics: const BouncingScrollPhysics(),
@@ -107,17 +101,11 @@ class _HomePageState extends State<HomePage> {
                             );
                           }
                       ),
-                      showLoadingIndicator(state),
+                      if(isLoadMore) const Center(child: CircularProgressIndicator(),)
                     ],
-                  );
+                  ) : Center(child: Text(error),);
                 })
           ),
       );
   }
-
-  Widget showLoadingIndicator(UserStates state) {
-    return (state is UserLoadingState) ? const Center(child:  CircularProgressIndicator()) : users.isEmpty ? Center(child: Text('No internet available'),)
-    : const SizedBox();
-  }
-
 }

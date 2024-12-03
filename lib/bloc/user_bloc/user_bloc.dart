@@ -9,10 +9,8 @@ class UserBloc extends Bloc<UserEvents, UserStates> {
   UserRepository userRepository;
 
   UserBloc({required this.userRepository}) : super(UserInitialState()) {
-    on((event, emit) async {
-      if(event is UserSubmittingEvent){
-        emit(UserLoadingState());
-      } else if(event is UserSubmittedEvent){
+    on<UserSubmittedEvent>((event, emit) async {
+      emit(UserLoadingState());
         try {
         List<Data> users = (await userRepository.getUsers(event.pageNumber)) as List<Data>;
       emit(UserSuccessState(users: users));
@@ -20,6 +18,6 @@ class UserBloc extends Bloc<UserEvents, UserStates> {
       emit(UserErrorState(error: e.toString()));
     }
       }
-    });
+    );
   }
 }
