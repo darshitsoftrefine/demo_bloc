@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
 
   ScrollController _scrollController = ScrollController();
   List<Data> users = [];
-  bool isLoadMore = false;
+  bool isLoading = false;
   int page = 1;
   String error = "";
 
@@ -53,20 +53,26 @@ class _HomePageState extends State<HomePage> {
           appBar: AppBar(
             title: const Text("Bloc Demo"),
           ),
-          body: BlocListener<UserBloc, UserStates>(
+          body: BlocConsumer<UserBloc, UserStates>(
             listener: (context, state) {
               if(state is UserSuccessState) {
-                isLoadMore = false;
+                isLoading = false;
+                int initialLength = users.length;
                 users.addAll(state.users);
+                if (users.length == initialLength) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("No new users were added.")));
+                  _scrollController.removeListener(_loadMore);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("New users added successfully.")));
+                }
               } else if(state is UserErrorState){
                 error = state.error;
               } else if(state is UserLoadingState || state is UserInitialState){
-                isLoadMore = true;
+                isLoading = true;
               }
             },
-              child : BlocBuilder<UserBloc, UserStates>(
-              builder: (context, state){
-                  return error == "" ? Stack(
+              builder : (context, state) {
+                return error == "" ? Stack(
                     children: [
                       ListView.builder(
                           physics: const BouncingScrollPhysics(),
@@ -101,10 +107,10 @@ class _HomePageState extends State<HomePage> {
                             );
                           }
                       ),
-                      if(isLoadMore) const Center(child: CircularProgressIndicator(),)
+                      if(isLoading) const Center(child: CircularProgressIndicator(),)
                     ],
                   ) : Center(child: Text(error),);
-                })
+            }
           ),
       );
   }
